@@ -1,13 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
+import uuid
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    with open('blog_posts.json') as fileobj:
-        blog_posts = json.load(fileobj)
+    try:
+        with open('blog_posts.json') as fileobj:
+            blog_posts = json.load(fileobj)
+    except json.decoder.JSONDecodeError:
+        blog_posts = []    
     return render_template('index.html', posts=blog_posts)
 
 
@@ -15,13 +19,14 @@ def index():
 def add():
     if request.method == 'POST':
         try:
-            with open('blog_posts.json', 'r') as fileobj:
+            with open('blog_posts.json') as fileobj:
                 blog_posts = json.load(fileobj)
-        except FileNotFoundError:
-            blog_posts = []
+        except json.decoder.JSONDecodeError:
+            blog_posts = []  
 
+        post_id = str(uuid.uuid4())
         new_post = {
-            'id': len(blog_posts) + 1,
+            'id': post_id,
             'title': request.form.get('title', ''),
             'content': request.form.get('content', ''),
             'author': request.form.get('author', '')
@@ -39,7 +44,7 @@ def add():
     return render_template('add.html')
 
 
-@app.route('/delete/<int:post_id>')
+@app.route('/delete/<post_id>')
 def delete(post_id):
     with open('blog_posts.json') as fileobj:
         blog_posts = json.load(fileobj)
@@ -54,6 +59,26 @@ def delete(post_id):
     return redirect(url_for('index'))
 
 
+@app.route('/update/<post_id>', methods=['GET', 'POST'])
+def update(post_id):
+    with open('blog_posts.json') as fileobj:
+        blog_posts = json.load(fileobj)
+
+    post = next((post for post in blog_posts if post['id'] == post_id), None)
+    if post is None:
+        return "Post not found", 404
+
+    if request.method == 'POST':
+        post['title'] = request.form.get('title', '')
+        post['content'] = request.form.get('content', '')
+        post['author'] = request.form.get('author', '')
+
+        with open('blog_posts.json', 'w') as fileobj:
+            json.dump(blog_posts, fileobj)
+
+        return redirect(url_for('index'))
+
+    return render_template('update.html', post=post)
 
 if __name__ == '__main__':
     app.run()
