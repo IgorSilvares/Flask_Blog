@@ -29,7 +29,8 @@ def add():
             'id': post_id,
             'title': request.form.get('title', ''),
             'content': request.form.get('content', ''),
-            'author': request.form.get('author', '')
+            'author': request.form.get('author', ''),
+            'likes': 0,
         }
 
         if new_post['title'] == '' or new_post['content'] == '' or new_post['author'] == '':
@@ -79,6 +80,23 @@ def update(post_id):
         return redirect(url_for('index'))
 
     return render_template('update.html', post=post)
+
+
+@app.route('/like/<post_id>')
+def like(post_id):
+    with open('blog_posts.json') as fileobj:
+        blog_posts = json.load(fileobj)
+
+    for post in blog_posts:
+        if post['id'] == post_id:
+            post['likes'] = post.get('likes', 0) + 1
+            break
+
+    with open('blog_posts.json', 'w') as fileobj:
+        json.dump(blog_posts, fileobj)
+
+    return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     app.run()
