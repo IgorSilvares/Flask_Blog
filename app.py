@@ -7,6 +7,13 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
+    """
+    Render the main page of the blog, which displays a list of all blog posts.
+
+    If the blog_posts.json file does not exist or is empty, render the template
+    with an empty list of posts. Otherwise, load the list of posts from the file
+    and render the template with it.
+    """
     try:
         with open('blog_posts.json') as fileobj:
             blog_posts = json.load(fileobj)
@@ -17,6 +24,25 @@ def index():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
+    """
+    Handle a request to add a new blog post.
+
+    If the request method is POST, attempt to load the list of posts from the
+    blog_posts.json file. If the file does not exist or is empty, create an empty
+    list. Otherwise, load the list from the file.
+
+    Extract the title, content, and author from the request form data. If any of
+    these fields is empty, return a 400 error with a message indicating that all
+    fields are required.
+
+    Generate a post ID as a random UUID, and create a new post dictionary with
+    the extracted title, content, author, and post ID. Add this new post to the
+    list of posts, and write the updated list back to the blog_posts.json file.
+
+    Redirect the user to the main page of the blog.
+
+    If the request method is not POST, render the add.html template.
+    """
     if request.method == 'POST':
         try:
             with open('blog_posts.json') as fileobj:
@@ -47,6 +73,15 @@ def add():
 
 @app.route('/delete/<post_id>')
 def delete(post_id):
+    """
+    Handle a request to delete a blog post with the given post_id.
+
+    Load the list of posts from the blog_posts.json file. Iterate over the list
+    of posts, and if a post has a matching post_id, remove it from the list.
+
+    Write the updated list of posts back to the blog_posts.json file, and
+    redirect the user to the main page of the blog.
+    """
     with open('blog_posts.json') as fileobj:
         blog_posts = json.load(fileobj)
 
@@ -62,6 +97,15 @@ def delete(post_id):
 
 @app.route('/update/<post_id>', methods=['GET', 'POST'])
 def update(post_id):
+    """
+    Handle a request to update a blog post with the given post_id.
+
+    Load the list of posts from the blog_posts.json file. If a post with the
+    given post_id is found, render the update.html template with the post
+    filled in. If the request is a POST, update the post in the list of
+    posts and write the list back to the blog_posts.json file. Then redirect
+    the user to the main page of the blog.
+    """
     with open('blog_posts.json') as fileobj:
         blog_posts = json.load(fileobj)
 
@@ -84,6 +128,14 @@ def update(post_id):
 
 @app.route('/like/<post_id>')
 def like(post_id):
+    """
+    Handle a request to like a blog post with the given post_id.
+
+    Load the list of posts from the blog_posts.json file. If a post with the
+    given post_id is found, increment its likes field by 1 and write the
+    list back to the blog_posts.json file. Then redirect the user to the
+    main page of the blog.
+    """
     with open('blog_posts.json') as fileobj:
         blog_posts = json.load(fileobj)
 
